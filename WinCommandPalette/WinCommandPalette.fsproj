@@ -4,11 +4,15 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net6.0-windows</TargetFramework>
         <UseWindowsForms>true</UseWindowsForms>
+        <UseWpf>true</UseWpf>
     </PropertyGroup>
 
     <ItemGroup>
         <EmbeddedResource Include="icon.png" />
-        <Compile Include="Icon.fs" />
+        <Compile Include="KeyboardHook.fs" />
+        <Compile Include="ApplicationIcon.fs" />
+        <Compile Include="InputWindow.fs" />
+        <Compile Include="NotificationAreaIcon.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

@@ -1,4 +1,4 @@
-﻿module WinCommandPalette.Icon
+﻿module WinCommandPalette.ApplicationIcon
 
 open System.Drawing
 open System.Reflection
