@@ -1,4 +1,4 @@
-﻿module WinCommandPalette.KeyboardHook
+﻿module WinCommandPalette.UI.KeyboardHook
 
 open System
 open Milki.Extensions.MouseKeyHook

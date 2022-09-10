@@ -1,4 +1,4 @@
-﻿module WinCommandPalette.InputWindow
+﻿module WinCommandPalette.UI.InputWindow
 
 open System
 open System.Runtime.InteropServices
@@ -43,6 +43,7 @@ let private createTextBox closeWindow =
 
     textBox.FontFamily <- FontFamily("Consolas")
     textBox.FontSize <- 32
+    textBox.Padding <- Thickness(0, 0, 20, 0)
 
     textBox.KeyUp.Add (fun e ->
         if e.Key = Key.Escape then
@@ -74,16 +75,29 @@ let private activateWindow window =
           && (DateTime.Now - t0) < timeout do
         window.Activate() |> ignore
 
+let private recenterWindow (window: Window) =
+    let hwnd =
+        WindowInteropHelper(window).Handle
+
+    let screen =
+        System.Windows.Forms.Screen.FromHandle(hwnd)
+
+    let outsideWidth =
+        float screen.Bounds.Width - window.ActualWidth
+
+    let left = outsideWidth / 2.0
+    window.Left <- left
+
 let private createWindow () =
     let window = Window()
     window.Topmost <- true
+    window.WindowStartupLocation <- WindowStartupLocation.CenterScreen
     window.ShowInTaskbar <- false
     window.WindowStyle <- WindowStyle.None
     window.ResizeMode <- ResizeMode.NoResize
     window.Background <- SolidColorBrush(Color.FromRgb(byte 80, byte 80, byte 80))
-    window.Height <- 80
-    window.Width <- 400
-    window.WindowStartupLocation <- WindowStartupLocation.CenterScreen
+    window.MinWidth <- 600
+    window.SizeToContent <- SizeToContent.WidthAndHeight
 
     let mutable closing = false
 
@@ -98,6 +112,8 @@ let private createWindow () =
     window.Deactivated.Add(fun _ -> if not closing then closeWindow ())
 
     window.Loaded.Add(fun _ -> activateWindow window)
+
+    window.SizeChanged.Add(fun _ -> recenterWindow window)
 
     let textBox = createTextBox closeWindow
 

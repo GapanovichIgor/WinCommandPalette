@@ -8,11 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="icon.png" />
-        <Compile Include="KeyboardHook.fs" />
-        <Compile Include="ApplicationIcon.fs" />
-        <Compile Include="InputWindow.fs" />
-        <Compile Include="NotificationAreaIcon.fs" />
+        <EmbeddedResource Include="Resources\ApplicationIcon.png" />
+        <EmbeddedResource Include="Resources\DefaultCommandConfig.json" />
+        <Compile Include="Resources\Resources.fs" />
+        <Compile Include="CommandConfig.fs" />
+        <Compile Include="UserFiles.fs" />
+        <Compile Include="UI\KeyboardHook.fs" />
+        <Compile Include="UI\InputWindow.fs" />
+        <Compile Include="UI\NotificationAreaIcon.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

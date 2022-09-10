@@ -1,9 +1,17 @@
 ﻿open System
+open System.Threading.Tasks
 open System.Windows.Forms
 open WinCommandPalette
+open WinCommandPalette.UI
 
 [<EntryPoint; STAThread>]
 let main _ =
+    let commands =
+        UserFiles
+            .getOrInitializeCommandConfigFileAsync()
+            .Result
+        |> CommandConfig.parse
+
     use windowInstanceManager =
         InputWindow.createWindowInstanceManager ()
 

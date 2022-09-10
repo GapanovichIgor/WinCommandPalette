@@ -1,0 +1,8 @@
+﻿{
+    "screen": {
+        "brightness": {
+            "low": "powershell -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)\"",
+            "high": "powershell -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,75)\""
+        }
+    }
+}

@@ -1,12 +1,13 @@
-﻿module WinCommandPalette.NotificationAreaIcon
+﻿module WinCommandPalette.UI.NotificationAreaIcon
 
 open System
 open System.Windows.Forms
+open WinCommandPalette
 
 let create () =
     let notifyIcon = new NotifyIcon()
 
-    notifyIcon.Icon <- ApplicationIcon.get ()
+    notifyIcon.Icon <- Resources.getApplicationIcon ()
 
     notifyIcon.ContextMenuStrip <- new ContextMenuStrip()
 
