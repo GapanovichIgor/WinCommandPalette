@@ -2,6 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WinCommandPalette", "WinCommandPalette\WinCommandPalette.fsproj", "{730730C4-06F9-4494-89EC-AE1109053DD1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{174BB8C7-25F4-40CF-916C-950E12676589}"
+	ProjectSection(SolutionItems) = preProject
+		install.cmd = install.cmd
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
