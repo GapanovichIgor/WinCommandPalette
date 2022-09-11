@@ -5,11 +5,11 @@
     ],
     "commands": [
         {
-            "handle": "scr brightness dim",
+            "handle": "scr dim",
             "text": "powershell.exe -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,75)\""
         },
         {
-            "handle": "scr brightness max",
+            "handle": "scr bright",
             "text": "powershell.exe -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)\""
         }
     ]
