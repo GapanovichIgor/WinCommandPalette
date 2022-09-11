@@ -14,18 +14,26 @@ module private PInvoke =
     [<DllImport("user32.dll")>]
     extern IntPtr GetForegroundWindow()
 
-type WindowInstanceManager(createWindow: ViewModel -> Window) =
+type Style =
+    { lightBackground: Color
+      lightText: Color
+      darkBackground: Color
+      fontFamily: FontFamily
+      autocompleteSelectedBackground: Color
+      autocompleteSelectedText: Color }
+
+type WindowInstanceManager(createWindow: Style * ViewModel -> Window) =
     let singleInstanceSyncEvent =
         new AutoResetEvent(true)
 
     interface IDisposable with
         member _.Dispose() = singleInstanceSyncEvent.Dispose()
 
-    member _.ShowWindowSingleInstance(viewModel: ViewModel) =
+    member _.ShowWindowSingleInstance(style: Style, viewModel: ViewModel) =
         if singleInstanceSyncEvent.WaitOne(1) then
             let thread =
                 Thread (fun () ->
-                    let window = createWindow viewModel
+                    let window = createWindow (style, viewModel)
 
                     window.ShowDialog() |> ignore
 
@@ -34,28 +42,43 @@ type WindowInstanceManager(createWindow: ViewModel -> Window) =
             thread.SetApartmentState(ApartmentState.STA)
             thread.Start()
 
-let private createTextBox (closeWindow: unit -> unit, viewModel: ViewModel) =
+let private createTextBox (style: Style, viewModel: ViewModel) =
     let textBox = TextBox()
 
     textBox.BorderThickness <- Thickness(0)
     textBox.Background <- SolidColorBrush(Color.FromArgb(byte 0, byte 0, byte 0, byte 0))
-    textBox.Foreground <- SolidColorBrush(Color.FromRgb(byte 150, byte 150, byte 150))
-    textBox.CaretBrush <- SolidColorBrush(Color.FromRgb(byte 150, byte 150, byte 150))
+    textBox.Foreground <- SolidColorBrush(style.lightText)
+    textBox.CaretBrush <- SolidColorBrush(style.lightText)
 
-    textBox.FontFamily <- FontFamily("Consolas")
+    textBox.FontFamily <- style.fontFamily
     textBox.FontSize <- 32
     textBox.Padding <- Thickness(0, 0, 20, 0)
 
-    textBox.KeyDown.Add (fun e ->
+    textBox.PreviewKeyDown.Add (fun e ->
         match e.Key with
         | Key.Escape ->
             e.Handled <- true
-            closeWindow ()
+            viewModel.Escape()
         | Key.Enter ->
             e.Handled <- true
-            viewModel.executeCommand textBox.Text
-            closeWindow ()
+            viewModel.Enter()
+        | Key.Down ->
+            e.Handled <- true
+            viewModel.Down()
+        | Key.Up ->
+            e.Handled <- true
+            viewModel.Up()
+        | Key.Tab ->
+            e.Handled <- true
+            viewModel.Tab()
+
         | _ -> ())
+
+    textBox.TextChanged.Add(fun _ -> viewModel.UpdateInput textBox.Text)
+
+    viewModel.InputTextUpdated.Add (fun () ->
+        textBox.Text <- viewModel.InputText
+        textBox.CaretIndex <- textBox.Text.Length)
 
     textBox
 
@@ -70,6 +93,41 @@ let private createBorder child =
     border.Child <- child
 
     border
+
+let private createAutocompleteList (style: Style, viewModel: ViewModel) =
+    let list = Grid()
+    list.Margin <- Thickness(10)
+    list.Background <- SolidColorBrush(style.darkBackground)
+    list.Visibility <- Visibility.Collapsed
+
+    viewModel.AutocompleteUpdated.Add (fun () ->
+        list.Dispatcher.Invoke (fun () ->
+            if viewModel.AutocompleteItems = [] then
+                list.Visibility <- Visibility.Collapsed
+            else
+                list.Visibility <- Visibility.Visible
+
+                list.Children.Clear() // TODO optimize
+                list.RowDefinitions.Clear()
+
+                for index, item in viewModel.AutocompleteItems |> Seq.indexed do
+                    let textBlock = TextBlock()
+                    textBlock.Text <- item
+                    textBlock.FontFamily <- style.fontFamily
+                    textBlock.FontSize <- 24
+                    textBlock.Padding <- Thickness(5)
+
+                    match viewModel.AutocompleteSelectionIndex with
+                    | Some i when i = index ->
+                        textBlock.Foreground <- SolidColorBrush(style.autocompleteSelectedText)
+                        textBlock.Background <- SolidColorBrush(style.autocompleteSelectedBackground)
+                    | _ -> textBlock.Foreground <- SolidColorBrush(style.lightText)
+
+                    list.RowDefinitions.Add(RowDefinition())
+                    list.Children.Add(textBlock) |> ignore
+                    Grid.SetRow(textBlock, index)))
+
+    list
 
 let private activateWindow window =
     let t0 = DateTime.Now
@@ -95,14 +153,14 @@ let private recenterWindow (window: Window) =
     let left = outsideWidth / 2.0
     window.Left <- left
 
-let private createWindow (viewModel: ViewModel) =
+let private createWindow (style: Style, viewModel: ViewModel) =
     let window = Window()
     window.Topmost <- true
     window.WindowStartupLocation <- WindowStartupLocation.CenterScreen
     window.ShowInTaskbar <- false
     window.WindowStyle <- WindowStyle.None
     window.ResizeMode <- ResizeMode.NoResize
-    window.Background <- SolidColorBrush(Color.FromRgb(byte 80, byte 80, byte 80))
+    window.Background <- SolidColorBrush(style.lightBackground)
     window.MinWidth <- 600
     window.SizeToContent <- SizeToContent.WidthAndHeight
 
@@ -122,12 +180,28 @@ let private createWindow (viewModel: ViewModel) =
 
     window.SizeChanged.Add(fun _ -> recenterWindow window)
 
+    viewModel.QuitRequested.Add(fun () -> closeWindow ())
+
     let textBox =
-        createTextBox (closeWindow, viewModel)
+        createTextBox (style, viewModel)
 
     let border = createBorder textBox
 
-    window.Content <- border
+    let autocompleteList =
+        createAutocompleteList (style, viewModel)
+
+    let grid = Grid()
+
+    grid.RowDefinitions.Add(RowDefinition())
+    grid.RowDefinitions.Add(RowDefinition())
+
+    grid.Children.Add(border) |> ignore
+    grid.Children.Add(autocompleteList) |> ignore
+
+    Grid.SetRow(border, 0)
+    Grid.SetRow(autocompleteList, 1)
+
+    window.Content <- grid
 
     window
 

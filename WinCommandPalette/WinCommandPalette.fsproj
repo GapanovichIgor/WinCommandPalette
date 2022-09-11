@@ -11,7 +11,7 @@
     <ItemGroup>
         <Compile Include="Logic\Command.fs" />
         <Compile Include="Logic\CommandConfig.fs" />
-        <Compile Include="Logic\ViewModel.fs" />
+        <Compile Include="Logic\Autocomplete.fs" />
         <EmbeddedResource Include="Resources\ApplicationIcon.png" />
         <EmbeddedResource Include="Resources\DefaultCommandConfig.json" />
         <Compile Include="Resources\Resources.fs" />
@@ -19,6 +19,8 @@
         <Compile Include="IO\CommandExecutor.fs" />
         <Compile Include="IO\CommandConfigParser.fs" />
         <Compile Include="IO\UserFiles.fs" />
+        <Compile Include="UI\ViewModel.fs" />
+        <Compile Include="UI\ViewModelImpl.fs" />
         <Compile Include="UI\KeyboardHook.fs" />
         <Compile Include="UI\InputWindow.fs" />
         <Compile Include="UI\NotificationAreaIcon.fs" />

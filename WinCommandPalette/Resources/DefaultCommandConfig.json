@@ -1,16 +1,10 @@
-﻿{
-    "separators": [
-        " ",
-        "/"
-    ],
-    "commands": [
-        {
-            "handle": "scr dim",
-            "text": "powershell.exe -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,75)\""
-        },
-        {
-            "handle": "scr bright",
-            "text": "powershell.exe -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)\""
-        }
-    ]
-}
+﻿[
+    {
+        "handle": "scr dim",
+        "text": "powershell.exe -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,75)\""
+    },
+    {
+        "handle": "scr bright",
+        "text": "powershell.exe -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)\""
+    }
+]
