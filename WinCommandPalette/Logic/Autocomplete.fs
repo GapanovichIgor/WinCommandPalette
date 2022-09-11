@@ -1,10 +1,10 @@
 ﻿module WinCommandPalette.Logic.Autocomplete
 
-let getSuggestions (commandConfig: CommandConfig) (inputText: string) : string list =
+let getSuggestions (commands: Command list) (inputText: string) : string list =
     if inputText.Length = 0 then
         []
     else
-        commandConfig.commands
+        commands
         |> Seq.choose (fun c ->
             if c.handle.StartsWith(inputText) then
                 Some(c.handle, c.handle.Length - inputText.Length)
@@ -14,9 +14,9 @@ let getSuggestions (commandConfig: CommandConfig) (inputText: string) : string l
         |> Seq.map fst
         |> List.ofSeq
 
-let completeUntilAmbiguity (commandConfig: CommandConfig) (inputText: string) : string =
+let completeUntilAmbiguity (commands: Command list) (inputText: string) : string =
     let handles =
-        commandConfig.commands
+        commands
         |> Seq.choose (fun c ->
             if c.handle.StartsWith(inputText) then
                 Some c.handle

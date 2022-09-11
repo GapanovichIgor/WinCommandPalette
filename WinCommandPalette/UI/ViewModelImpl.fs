@@ -7,9 +7,9 @@ type private State =
     | FocusOnText
     | FocusOnAutocomplete of selectionIndex: int
 
-type ViewModelImpl(commandConfig: CommandConfig) =
-    let commands =
-        commandConfig.commands
+type ViewModelImpl(commands: Command list) =
+    let commandTextByHandle =
+        commands
         |> Seq.map (fun c -> (c.handle, c.text))
         |> Map.ofSeq
 
@@ -51,19 +51,19 @@ type ViewModelImpl(commandConfig: CommandConfig) =
         member _.Enter() =
             match state with
             | FocusOnText ->
-                match commands.TryFind(inputText) with
+                match commandTextByHandle.TryFind(inputText) with
                 | Some commandText ->
                     CommandExecutor.execute commandText
                     quitRequested.Trigger()
                 | None -> () // TODO report wrong command
             | FocusOnAutocomplete selectionIndex ->
                 let autocompleteItem = autocompleteItems[selectionIndex]
-                let commandText = commands[autocompleteItem]
+                let commandText = commandTextByHandle[autocompleteItem]
                 CommandExecutor.execute commandText
                 quitRequested.Trigger()
 
         member _.Tab() =
-            inputText <- Autocomplete.completeUntilAmbiguity commandConfig inputText
+            inputText <- Autocomplete.completeUntilAmbiguity commands inputText
             inputTextUpdatedEvent.Trigger()
 
         member _.Up() =
@@ -101,5 +101,5 @@ type ViewModelImpl(commandConfig: CommandConfig) =
         member _.UpdateInput(newInput) =
             state <- FocusOnText
             inputText <- newInput
-            autocompleteItems <- Autocomplete.getSuggestions commandConfig inputText
+            autocompleteItems <- Autocomplete.getSuggestions commands inputText
             autocompleteUpdatedEvent.Trigger()

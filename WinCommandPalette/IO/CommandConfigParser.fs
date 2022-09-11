@@ -5,5 +5,5 @@ open System.Text.Json
 open System.Threading.Tasks
 open WinCommandPalette.Logic
 
-let parseAsync (stream: Stream) : ValueTask<CommandConfig> =
-    JsonSerializer.DeserializeAsync<CommandConfig>(stream)
+let parseAsync (stream: Stream) : ValueTask<Command list> =
+    JsonSerializer.DeserializeAsync<Command list>(stream)
