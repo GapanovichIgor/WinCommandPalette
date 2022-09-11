@@ -1,4 +1,4 @@
-﻿module WinCommandPalette.CommandExecutor
+﻿module WinCommandPalette.Logic.CommandExecutor
 
 open System.Diagnostics
 

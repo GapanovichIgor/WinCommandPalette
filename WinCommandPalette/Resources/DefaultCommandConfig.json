@@ -1,8 +1,16 @@
 ﻿{
-    "screen": {
-        "brightness": {
-            "high": "powershell -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)\"",
-            "low": "powershell -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,75)\""
+    "separators": [
+        " ",
+        "/"
+    ],
+    "commands": [
+        {
+            "handle": "scr brightness dim",
+            "text": "powershell.exe -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,75)\""
+        },
+        {
+            "handle": "scr brightness max",
+            "text": "powershell.exe -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)\""
         }
-    }
+    ]
 }

@@ -8,7 +8,7 @@ open System.Windows.Controls
 open System.Windows.Input
 open System.Windows.Interop
 open System.Windows.Media
-open WinCommandPalette
+open WinCommandPalette.Logic
 
 module private PInvoke =
     [<DllImport("user32.dll")>]

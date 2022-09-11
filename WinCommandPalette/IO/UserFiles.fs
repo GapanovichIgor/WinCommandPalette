@@ -1,4 +1,4 @@
-﻿module WinCommandPalette.UserFiles
+﻿module WinCommandPalette.IO.UserFiles
 
 open System
 open System.IO

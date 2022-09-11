@@ -1,31 +1,29 @@
 ﻿open System
 open System.Windows.Forms
-open WinCommandPalette
+open WinCommandPalette.IO
 open WinCommandPalette.UI
+open WinCommandPalette.Logic
 
 [<EntryPoint; STAThread>]
 let main _ =
-    let commands =
+    let commandConfig =
         use configFileStream =
             UserFiles
                 .getOrInitializeCommandConfigFileAsync()
                 .Result
 
-        CommandConfigParser.parse configFileStream
-
-    let commands =
-        match commands with
-        | Ok commands -> commands
-        | Error e -> failwith e // TODO report config error
-
-    let pathToString (path: string list) = path |> String.concat "/"
+        CommandConfigParser
+            .parseAsync(
+                configFileStream
+            )
+            .Result
 
     let viewModel =
         { ViewModel.executeCommand =
-            fun text ->
+            fun handle ->
                 let command =
-                    commands
-                    |> Seq.tryFind (fun c -> pathToString c.path = text)
+                    commandConfig.commands
+                    |> Seq.tryFind (fun c -> c.handle = handle)
 
                 match command with // TODO report wrong command
                 | Some command -> CommandExecutor.execute command.text
