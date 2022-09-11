@@ -8,23 +8,24 @@ open System.Windows.Controls
 open System.Windows.Input
 open System.Windows.Interop
 open System.Windows.Media
+open WinCommandPalette
 
 module private PInvoke =
     [<DllImport("user32.dll")>]
     extern IntPtr GetForegroundWindow()
 
-type WindowInstanceManager(createWindow: unit -> Window) =
+type WindowInstanceManager(createWindow: ViewModel -> Window) =
     let singleInstanceSyncEvent =
         new AutoResetEvent(true)
 
     interface IDisposable with
         member _.Dispose() = singleInstanceSyncEvent.Dispose()
 
-    member _.ShowWindowSingleInstance() =
+    member _.ShowWindowSingleInstance(viewModel: ViewModel) =
         if singleInstanceSyncEvent.WaitOne(1) then
             let thread =
                 Thread (fun () ->
-                    let window = createWindow ()
+                    let window = createWindow viewModel
 
                     window.ShowDialog() |> ignore
 
@@ -33,7 +34,7 @@ type WindowInstanceManager(createWindow: unit -> Window) =
             thread.SetApartmentState(ApartmentState.STA)
             thread.Start()
 
-let private createTextBox closeWindow =
+let private createTextBox (closeWindow: unit -> unit, viewModel: ViewModel) =
     let textBox = TextBox()
 
     textBox.BorderThickness <- Thickness(0)
@@ -45,10 +46,16 @@ let private createTextBox closeWindow =
     textBox.FontSize <- 32
     textBox.Padding <- Thickness(0, 0, 20, 0)
 
-    textBox.KeyUp.Add (fun e ->
-        if e.Key = Key.Escape then
+    textBox.KeyDown.Add (fun e ->
+        match e.Key with
+        | Key.Escape ->
             e.Handled <- true
-            closeWindow ())
+            closeWindow ()
+        | Key.Enter ->
+            e.Handled <- true
+            viewModel.executeCommand textBox.Text
+            closeWindow ()
+        | _ -> ())
 
     textBox
 
@@ -88,7 +95,7 @@ let private recenterWindow (window: Window) =
     let left = outsideWidth / 2.0
     window.Left <- left
 
-let private createWindow () =
+let private createWindow (viewModel: ViewModel) =
     let window = Window()
     window.Topmost <- true
     window.WindowStartupLocation <- WindowStartupLocation.CenterScreen
@@ -115,7 +122,8 @@ let private createWindow () =
 
     window.SizeChanged.Add(fun _ -> recenterWindow window)
 
-    let textBox = createTextBox closeWindow
+    let textBox =
+        createTextBox (closeWindow, viewModel)
 
     let border = createBorder textBox
 
