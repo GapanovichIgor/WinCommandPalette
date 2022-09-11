@@ -13,6 +13,8 @@ type ViewModelImpl(commands: Command list) =
         |> Seq.map (fun c -> (c.handle, c.text))
         |> Map.ofSeq
 
+    let syncObj = obj ()
+
     let mutable inputText = ""
 
     let mutable autocompleteItems = []
@@ -24,14 +26,17 @@ type ViewModelImpl(commands: Command list) =
     let quitRequested = Event<unit>()
 
     interface ViewModel with
-        member _.InputText = inputText
+        member _.InputText =
+            lock syncObj (fun () -> inputText)
 
-        member _.AutocompleteItems = autocompleteItems
+        member _.AutocompleteItems =
+            lock syncObj (fun () -> autocompleteItems)
 
         member _.AutocompleteSelectionIndex =
-            match state with
-            | FocusOnAutocomplete selectionIndex -> Some selectionIndex
-            | _ -> None
+            lock syncObj (fun () ->
+                match state with
+                | FocusOnAutocomplete selectionIndex -> Some selectionIndex
+                | _ -> None)
 
         member _.InputTextUpdated =
             inputTextUpdatedEvent.Publish
@@ -42,64 +47,74 @@ type ViewModelImpl(commands: Command list) =
         member _.QuitRequested = quitRequested.Publish
 
         member _.Escape() =
-            match state with
-            | FocusOnText -> quitRequested.Trigger()
-            | FocusOnAutocomplete _ ->
-                state <- FocusOnText
-                autocompleteUpdatedEvent.Trigger()
+            lock syncObj (fun () ->
+                match state with
+                | FocusOnText -> quitRequested.Trigger()
+                | FocusOnAutocomplete _ ->
+                    state <- FocusOnText
+                    autocompleteUpdatedEvent.Trigger())
 
         member _.Enter() =
-            match state with
-            | FocusOnText ->
-                match commandTextByHandle.TryFind(inputText) with
-                | Some commandText ->
+            lock syncObj (fun () ->
+                match state with
+                | FocusOnText ->
+                    match commandTextByHandle.TryFind(inputText) with
+                    | Some commandText ->
+                        CommandExecutor.execute commandText
+                        quitRequested.Trigger()
+                    | None -> ()
+                | FocusOnAutocomplete selectionIndex ->
+                    let autocompleteItem =
+                        autocompleteItems[selectionIndex]
+
+                    let commandText =
+                        commandTextByHandle[autocompleteItem]
+
                     CommandExecutor.execute commandText
-                    quitRequested.Trigger()
-                | None -> () // TODO report wrong command
-            | FocusOnAutocomplete selectionIndex ->
-                let autocompleteItem = autocompleteItems[selectionIndex]
-                let commandText = commandTextByHandle[autocompleteItem]
-                CommandExecutor.execute commandText
-                quitRequested.Trigger()
+                    quitRequested.Trigger())
 
         member _.Tab() =
-            inputText <- Autocomplete.completeUntilAmbiguity commands inputText
-            inputTextUpdatedEvent.Trigger()
+            lock syncObj (fun () ->
+                inputText <- Autocomplete.completeUntilAmbiguity commands inputText
+                inputTextUpdatedEvent.Trigger())
 
         member _.Up() =
-            match state with
-            | FocusOnText ->
-                if autocompleteItems.Length > 0 then
-                    state <- FocusOnAutocomplete(autocompleteItems.Length - 1)
-                    autocompleteUpdatedEvent.Trigger()
-            | FocusOnAutocomplete selectionIndex ->
-                let newIndex =
-                    if selectionIndex > 0 then
-                        selectionIndex - 1
-                    else
-                        autocompleteItems.Length - 1
+            lock syncObj (fun () ->
+                match state with
+                | FocusOnText ->
+                    if autocompleteItems.Length > 0 then
+                        state <- FocusOnAutocomplete(autocompleteItems.Length - 1)
+                        autocompleteUpdatedEvent.Trigger()
+                | FocusOnAutocomplete selectionIndex ->
+                    let newIndex =
+                        if selectionIndex > 0 then
+                            selectionIndex - 1
+                        else
+                            autocompleteItems.Length - 1
 
-                state <- FocusOnAutocomplete newIndex
-                autocompleteUpdatedEvent.Trigger()
+                    state <- FocusOnAutocomplete newIndex
+                    autocompleteUpdatedEvent.Trigger())
 
         member _.Down() =
-            match state with
-            | FocusOnText ->
-                if autocompleteItems.Length > 0 then
-                    state <- FocusOnAutocomplete 0
-                    autocompleteUpdatedEvent.Trigger()
-            | FocusOnAutocomplete selectionIndex ->
-                let newIndex =
-                    if selectionIndex < autocompleteItems.Length - 1 then
-                        selectionIndex + 1
-                    else
-                        0
+            lock syncObj (fun () ->
+                match state with
+                | FocusOnText ->
+                    if autocompleteItems.Length > 0 then
+                        state <- FocusOnAutocomplete 0
+                        autocompleteUpdatedEvent.Trigger()
+                | FocusOnAutocomplete selectionIndex ->
+                    let newIndex =
+                        if selectionIndex < autocompleteItems.Length - 1 then
+                            selectionIndex + 1
+                        else
+                            0
 
-                state <- FocusOnAutocomplete newIndex
-                autocompleteUpdatedEvent.Trigger()
+                    state <- FocusOnAutocomplete newIndex
+                    autocompleteUpdatedEvent.Trigger())
 
         member _.UpdateInput(newInput) =
-            state <- FocusOnText
-            inputText <- newInput
-            autocompleteItems <- Autocomplete.getSuggestions commands inputText
-            autocompleteUpdatedEvent.Trigger()
+            lock syncObj (fun () ->
+                state <- FocusOnText
+                inputText <- newInput
+                autocompleteItems <- Autocomplete.getSuggestions commands inputText
+                autocompleteUpdatedEvent.Trigger())
