@@ -14,9 +14,10 @@
         <EmbeddedResource Include="Resources\ApplicationIcon.png" />
         <EmbeddedResource Include="Resources\DefaultCommandConfig.json" />
         <Compile Include="Resources\Resources.fs" />
+        <Compile Include="IO\UserFiles.fs" />
         <Compile Include="IO\CommandExecutor.fs" />
         <Compile Include="IO\CommandConfigParser.fs" />
-        <Compile Include="IO\UserFiles.fs" />
+        <Compile Include="IO\Logging.fs" />
         <Compile Include="UI\ViewModel.fs" />
         <Compile Include="UI\ViewModelImpl.fs" />
         <Compile Include="UI\KeyboardHook.fs" />
@@ -27,6 +28,7 @@
 
     <ItemGroup>
       <PackageReference Include="Milki.Extensions.MouseKeyHook" Version="0.0.30" />
+      <PackageReference Include="NLog" Version="5.0.4" />
     </ItemGroup>
 
 </Project>

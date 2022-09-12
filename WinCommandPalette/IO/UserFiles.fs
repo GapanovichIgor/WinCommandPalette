@@ -13,12 +13,19 @@ let private userFileFolderName =
 let private commandConfigFileName =
     "CommandConfig.json"
 
+[<Literal>]
+let private logFolderName =
+    "logs"
+
 let private userFileDirectory =
     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), userFileFolderName)
     |> Directory.CreateDirectory
 
 let private commandConfigFilePath =
     Path.Combine(userFileDirectory.FullName, commandConfigFileName)
+
+let logDirectoryPath =
+    Path.Combine(userFileDirectory.FullName, logFolderName)
 
 let getOrInitializeCommandConfigFileAsync () : Task<Stream> =
     task {
