@@ -1,3 +1,6 @@
 ﻿namespace WinCommandPalette.Logic
 
-type Command = { handle: string; text: string }
+type Command =
+    { handle: string
+      text: string
+      showToast: bool }
