@@ -54,14 +54,24 @@ type ViewModelImpl(commands: Command list) =
                     state <- FocusOnText
                     autocompleteUpdatedEvent.Trigger())
 
-        member _.Enter() =
+        member _.Enter(andContinue) =
             lock syncObj (fun () ->
+                let inline execute commandText =
+                    CommandExecutor.execute commandText
+
+                    if andContinue then
+                        inputText <- ""
+                        autocompleteItems <- []
+                        state <- FocusOnText
+                        inputTextUpdatedEvent.Trigger()
+                        autocompleteUpdatedEvent.Trigger()
+                    else
+                        quitRequested.Trigger()
+
                 match state with
                 | FocusOnText ->
                     match commandTextByHandle.TryFind(inputText) with
-                    | Some commandText ->
-                        CommandExecutor.execute commandText
-                        quitRequested.Trigger()
+                    | Some commandText -> execute commandText
                     | None -> ()
                 | FocusOnAutocomplete selectionIndex ->
                     let autocompleteItem =
@@ -70,8 +80,7 @@ type ViewModelImpl(commands: Command list) =
                     let commandText =
                         commandTextByHandle[autocompleteItem]
 
-                    CommandExecutor.execute commandText
-                    quitRequested.Trigger())
+                    execute commandText)
 
         member _.Tab() =
             lock syncObj (fun () ->

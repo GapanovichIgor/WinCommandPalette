@@ -8,8 +8,8 @@ type ViewModel =
     abstract AutocompleteUpdated: IEvent<unit>
     abstract QuitRequested: IEvent<unit>
     abstract Escape: unit -> unit
-    abstract Enter: unit -> unit
+    abstract Enter: andContinue: bool -> unit
     abstract Tab: unit -> unit
     abstract Up: unit -> unit
     abstract Down: unit -> unit
-    abstract UpdateInput: string -> unit
+    abstract UpdateInput: inputText: string -> unit
