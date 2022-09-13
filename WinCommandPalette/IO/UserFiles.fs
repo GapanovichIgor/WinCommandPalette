@@ -17,7 +17,7 @@ let private commandConfigFileName =
 let private logFolderName =
     "logs"
 
-let private userFileDirectory =
+let userFileDirectory =
     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), userFileFolderName)
     |> Directory.CreateDirectory
 
